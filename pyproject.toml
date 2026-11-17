@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ighd"
+version = "0.0.1"
+description = "Incremental updates of generalized hypertree decompositions (Gottlob, Lanzinger, Longo, Okulmus, arXiv:2209.10375): research implementation"
+requires-python = ">=3.11"
+# The core is deliberately dependency-free (IMPLEMENTATION_PLAN §D).
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7.0", "hypothesis>=6.0"]
+bench = ["pandas>=2.0", "matplotlib>=3.7"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# `python -m pytest` works in a checkout without an install step.
+pythonpath = ["src", "."]
+addopts = "-q --strict-markers -m 'not slow'"
+markers = [
+    "slow: long randomized or differential runs (run with -m slow)",
+    "paper_discrepancy: pins our behaviour where the paper is ambiguous or inconsistent (PAPER_ANALYSIS §4)",
+]
