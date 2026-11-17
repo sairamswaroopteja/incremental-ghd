@@ -123,11 +123,11 @@ A16 (Ex. 5.2 vs Alg 3), A17 (scene key), A21 (missing interface check: produces 
 None.
 
 ## Still awaiting your answer
-1. `git init`.
-2. Optional: the BalancedGoUpdate source (not downloaded). HyperBench: approved and done.
+1. Optional: the BalancedGoUpdate source (not downloaded). HyperBench: approved and done.
 
 ## Next recommended action
 The project is complete as planned. Optional follow-ups, none of which blocks the results:
 1. **A GHD normaliser (R6)**, so that the PAPER strategy accepts any valid GHD.
 2. **A larger benchmark run**, or the HEURISTIC mode, or an external decomposer, for scale.
-3. **`git init`**, your call.
+
+Version control: a git repository was initialised on branch `main`, with all stages in the first commit.

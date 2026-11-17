@@ -212,7 +212,6 @@ Details are in `docs/TESTING_REPORT.md`.
 4. **Generator biases:** the random tests use rank ≤ 3, few edges and k ≤ 2 in the chains. About 21% of chain steps start from a non-minimal GHD, which lies outside the paper's precondition; their answers are still exact for the k used.
 5. **Benchmarks:** limited scale, and timings measured under parallel load. The memory cap is sampled, not enforced by the OS.
 6. **Not built:** a GHD normaliser, the BalancedGo / log-k-decomp decomposers, htdLEO, and hypothesis profiles `ci`/`deep`. Each test file uses fixed `derandomize=True` settings instead.
-7. **No version control:** git was never initialised. That is still your call.
 
 ---
 
