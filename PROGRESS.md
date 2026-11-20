@@ -21,6 +21,16 @@
 - `-m paper_discrepancy`: 16 tests.
 - Details, traceability and limitations: `docs/TESTING_REPORT.md`.
 
+## Deployment
+- **Live site:** https://incremental-ghd.onrender.com, on Render's free plan. It is deployed from `render.yaml` (a Blueprint) and redeploys automatically on every push to `main`.
+- **Public mode** (`python web.py --public`):
+  - a private session per visitor, identified by an HttpOnly, Secure cookie; at most 200 sessions are kept, and an idle one expires after an hour;
+  - inputs of at most 60 edges and 60 vertices;
+  - every search has a time limit, 10 s by default and at most 20 s;
+  - a `/healthz` health check.
+- **Checked on the live site:** the page, the health check, a full decompose-and-modify round, isolation between two visitors, and the limits.
+- **Source:** https://github.com/sairamswaroopteja/incremental-ghd (public).
+
 ## Web interface (after S15, at your request)
 - **Restyled** to match the dynamic-treewidth demo:
   - dark, flat, monospace, with a masthead and example chips;
