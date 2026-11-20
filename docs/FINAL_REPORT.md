@@ -63,6 +63,7 @@ We still do **not** claim that "the paper is fully implemented":
 | DelVar rule | §3.2, §6.1 | validity tests; NF reported (A29) |
 | `ghd_update` with three strategies, input-minimality check, output validation | §3.2 SearchUpdateGHD | every answer agrees with the oracle in every random run |
 | Benchmark harness on HyperBench: §6.1 generator, runner, Table 1 metrics, Fig. 7 plots | §6 | metrics recomputed by an independent script; answers checked against the oracle |
+| **Online, query-based system** (`python online.py`): user-given hypergraph and modifications, queries between steps, exact ghw after every step | §3.2 (SearchUpdateGHD, applied online) | random streams: every reported ghw equals the oracle's (303 steps default, 3,926 slow) |
 
 ### 2.2 Partially implemented
 
@@ -185,8 +186,8 @@ The run is `benchmarks/results/small-seed0/`.
 ## 6. Testing summary
 
 Details are in `docs/TESTING_REPORT.md`.
-- **Default suite** `python -m pytest`: **691 passed**, 15 `slow` tests deselected.
-- **Slow suite** `-m slow`: 15 passed, including the 10⁴-step criterion, which ran 21,238 steps.
+- **Default suite** `python -m pytest`: **708 passed**, 16 `slow` tests deselected.
+- **Slow suite** `-m slow`: 16 tests (15 last run together; the new online stream test passed on its own), including the 10⁴-step criterion, which ran 21,238 steps.
 - **Independent references:** the exact oracle, brute-force mutable subtrees, and the validator.
 - **Function-level execution scan (S15):** every one of the 193 functions in `src/ighd` runs during the default suite. Before S15, four never ran:
   - the frozen public wrapper `update.decomp_update.decomp_update`;

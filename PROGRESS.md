@@ -16,10 +16,38 @@
 **All stages S0–S15 are complete.**
 
 ## Tests
-- `python -m pytest`: **691 passed, 0 failed**, 15 `slow` deselected.
-- `-m slow`: **15 passed**.
+- `python -m pytest`: **708 passed, 0 failed**, 16 `slow` deselected.
+- `-m slow`: **15 passed** together; the 16th (online streams, 3,926 steps) passed on its own.
 - `-m paper_discrepancy`: 16 tests.
 - Details, traceability and limitations: `docs/TESTING_REPORT.md`.
+
+## Web interface (after S15, at your request)
+- **Restyled** to match the dynamic-treewidth demo:
+  - dark, flat, monospace, with a masthead and example chips;
+  - a stats strip whose ghw readout is yellow, with ▲ / ▼ for a change;
+  - panels with a dotted grid, pan and zoom, and Fit / 1:1;
+  - captions, a selection bar linking both drawings, an Applied log (rises yellow, drops green), and Settings / About sections.
+- **Files:** split into `static/index.html`, `style.css` and `app.js`. The server serves only those files (an allow-list).
+- **Launch:** `python web.py` opens http://127.0.0.1:8765. It binds to 127.0.0.1 only and uses only the Python standard library.
+- **Input:** a text box (one edge per line, or HyperBench), built-in examples, small HyperBench instances, or a `.hg` upload.
+- **Forms** for all six modifications, filled from the current vertices and edges, each with a live preview.
+- **Output:** the ghw card (proven or bound, rose / dropped / unchanged), an Euler-style hypergraph drawing (each edge a coloured shape around exactly its vertices, smaller edges inside larger ones, colours fixed per edge for the session, changed edges dashed with a ● mark, hover highlighting, click to fill the form; force layout that keeps edge members together and stays stable between steps), a decomposition drawing (kept nodes blue, new nodes orange), a step log, undo and reset, and settings.
+- **Tests:** `tests/online/test_web.py` drives the JSON API over real HTTP:
+  - every modification kind, with each served GHD validated and its ghw checked against the oracle;
+  - errors leave the state unchanged;
+  - undo, reset, settings, and the input parser.
+- **Checked by hand** in the browser: decompose, delete w7 (4 of 4 nodes kept), split c (ghw 2 → 1, the oracle agrees), the error message, and the light and dark themes.
+
+## Online, query-based system (after S15, at your request)
+- **Launch:** `python online.py`, or `python -m ighd.online` after an install.
+- **Flow:** you type the initial hypergraph (`edge e1 a b`, HyperBench terms, or `load file.hg`), then the six modifications one at a time. Each one is handled incrementally by `ghd_update` (PAPER by default).
+- **Queries** between steps: `ghw`, `ghd`, `show`, `check` and `history`; plus `undo`, `save`, `strategy`, `tighten`, `oracle` and `timeout`.
+- **Exact ghw after every step:** our addition, not the paper's, using the EXACT decomposer only (Theorem E):
+  - after PROVEN_NO, it searches upward from k+1;
+  - after an UPDATED step that could lower ghw, it tightens downward. AddVar is exempt, because it provably never lowers ghw.
+- **With a time limit**, no step claims a proof.
+- **A non-NF current GHD** is updated with THEOREM45, and the switch is reported.
+- **Tests:** `tests/online/test_online.py` checks random streams against the exact oracle: 303 steps by default; the slow run has 3,926 steps with 106 rises and 283 drops, and every reported ghw is correct. It also covers the parser, error handling, undo and the time limit.
 
 ## Gap closure after S15 (main agent)
 - **A8:** `test_a8_merge_target_inside_or_outside_u_changes_t_star`. Path a-b-c-d with merge {a,b}: w = b gives T* = {n1}, a fresh w gives T* = T. Both were derived by hand and equal the brute-force minimum.

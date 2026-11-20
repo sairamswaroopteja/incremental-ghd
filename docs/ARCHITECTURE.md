@@ -96,6 +96,8 @@ All of these are backward compatible: new optional parameters with defaults, or 
 | S13 | `tests/randomized/` (Lemma G, Lemma H, widened modification distribution); slow 10⁴-step chain test | S13 done criterion; traceability gaps |
 | S14 | top-level package `benchmarks/` (outside `src/ighd`, imports only the public API): `loader`, `generator` (§6.1, seeded), `pool` (spawned workers, hard kill, RSS watchdog), `worker`, `runner`, `metrics`, `report`, `plots`, CLI `python -m benchmarks.run` | M14; no library interface changed |
 | S15 | `examples/quickstart.py`; tests for the public `decomp_update` wrapper | deliverable 12; function-level execution scan |
+| post-S15 | package `ighd.online` (`OnlineSession`, `Shell`, `main`), launcher `online.py` | online, query-based use: user input, one modification at a time. Adds exact ghw tracking (raise after PROVEN_NO, tighten after a possible drop); no library interface changed |
+| post-S15 | `ighd.online.web` (stdlib HTTP server, JSON API, one page `static/index.html`), launcher `web.py`; `StepReport` gained `changed_edges`, `removed_edges`, `reused_node_ids` | web interface with forms for all six modifications and drawings of the hypergraph and the GHD |
 
 ## The update pipeline (S12) at a glance
 

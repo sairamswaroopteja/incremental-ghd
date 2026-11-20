@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incremental GHD — interactive demo</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <h1>Incremental GHD</h1>
+    <p>
+      An implementation of Gottlob, Lanzinger, Longo and Okulmus, <em>Incremental Updates of
+      Generalized Hypertree Decompositions</em>
+      (<a href="https://arxiv.org/abs/2209.10375" rel="noreferrer">arXiv:2209.10375</a>),
+      maintaining a minimum-width generalized hypertree decomposition (GHD) of a hypergraph
+      while you add and remove vertices, edges and equalities.
+    </p>
+  </div>
+</header>
+
+<main>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="block" id="input-block">
+    <div class="block-head">
+      <h2>Hypergraph input</h2>
+      <div class="examples" id="examples" aria-label="Predefined examples"></div>
+    </div>
+
+    <div class="editor-row">
+      <textarea id="graph-text" spellcheck="false" autocapitalize="off" autocomplete="off"
+                rows="9" aria-label="Hypergraph input" placeholder="e1: a b c&#10;e2: c d&#10;e3: d e a"></textarea>
+      <aside class="hint">
+        <p>One edge per line: a <strong>name</strong>, then its <strong>vertices</strong>,
+           e.g. <code>e1: a b c</code>.</p>
+        <p>HyperBench syntax also works: <code>e1(a,b,c), e2(c,d).</code></p>
+        <p>Blank lines and <code>#</code> / <code>%</code> comments are ignored.</p>
+        <p class="limit" id="limit-note">Every answer is exact (the problem is NP-hard), so keep inputs small:
+           a few dozen edges at most. Searches stop after the time limit in Settings.</p>
+      </aside>
+    </div>
+
+    <div class="actions">
+      <button id="generate" class="primary" type="button">Decompose</button>
+      <select id="bench" disabled aria-label="HyperBench instance">
+        <option value="">HyperBench instance…</option>
+      </select>
+      <label class="filepick"><input type="file" id="file" accept=".hg,.txt"><span>Open .hg file…</span></label>
+      <span class="note" id="generate-note"></span>
+    </div>
+
+    <p class="error" id="graph-error" hidden></p>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="stats" id="stats" hidden>
+    <div class="stat">
+      <span class="stat-value" id="stat-vertices">—</span>
+      <span class="stat-label">Vertices</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" id="stat-edges">—</span>
+      <span class="stat-label">Edges</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" id="stat-nodes">—</span>
+      <span class="stat-label">GHD nodes</span>
+    </div>
+    <div class="stat wide">
+      <span class="stat-value" id="stat-width">—</span>
+      <span class="stat-label"><span id="stat-width-label">Generalized hypertree width</span>
+        <span class="info" tabindex="0" title="ghw(H): the smallest width of any GHD of H. 'proven' means an exhaustive exact search showed that no smaller width exists; 'upper bound' means a GHD of this width exists but a smaller one was not ruled out (time limit, or exact tracking switched off).">?</span>
+      </span>
+    </div>
+    <div class="stat">
+      <span class="stat-value badge" id="stat-valid">—</span>
+      <span class="stat-label">GHD axioms
+        <span class="info" tabindex="0" title="Checked by the independent validator: every edge is covered by a bag, every vertex's bags form a connected subtree, and every bag lies inside the union of its cover λ.">?</span>
+      </span>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="empty-state" id="empty-state">
+    <p>Pick an example above or type your own hypergraph, then press <strong>Decompose</strong>.</p>
+    <p class="dim">The first decomposition is found by an exact search. After that, every
+       modification updates it incrementally with the paper's algorithm.</p>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="panels" id="panels" hidden>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Hypergraph <span class="mono dim">H</span></h2>
+        <div class="tools">
+          <button class="tool" id="hg-fit" type="button" title="Fit to view">Fit</button>
+          <button class="tool" id="hg-reset" type="button" title="Actual size">1:1</button>
+        </div>
+      </div>
+      <div class="viewport"><svg id="hg-svg" role="img" aria-label="The current hypergraph"></svg></div>
+      <div class="caption" id="hg-caption"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Maintained GHD</h2>
+        <div class="tools">
+          <button class="tool" id="tree-fit" type="button" title="Fit the whole tree">Fit</button>
+          <button class="tool" id="tree-reset" type="button" title="Readable size, at the root">1:1</button>
+        </div>
+      </div>
+      <div class="viewport"><svg id="tree-svg" role="img" aria-label="The maintained decomposition"></svg></div>
+      <div class="caption" id="tree-caption"></div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="selection-bar" id="selection-bar" hidden>
+    <span id="selection-text"></span>
+    <button class="tool" id="clear-selection" type="button">Clear selection</button>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="block" id="update-block" hidden>
+    <div class="block-head">
+      <h2>Modifications</h2>
+      <span class="note">Applied one at a time to the live decomposition. Clicking a vertex or an
+        edge in the drawing fills in the form.</span>
+    </div>
+
+    <div class="kinds" id="kinds" role="tablist"></div>
+    <p class="kind-desc" id="kind-desc"></p>
+    <div id="form"></div>
+    <div class="preview" id="preview"></div>
+
+    <div class="actions">
+      <button id="apply" class="primary" type="button">Apply</button>
+      <button id="undo" type="button" disabled>Undo</button>
+      <span class="note" id="apply-note"></span>
+    </div>
+
+    <p class="error" id="update-error" hidden></p>
+
+    <div class="result" id="result" hidden></div>
+
+    <div class="log-wrap">
+      <h3>Applied</h3>
+      <ol class="log" id="log"></ol>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <details class="about" id="settings">
+    <summary>Settings</summary>
+    <div class="about-body settings-grid">
+      <div>
+        <label class="field" for="strategy">Update method</label>
+        <select id="strategy">
+          <option value="paper">paper: Algorithms 2–5 (scenes, DecompUpdate)</option>
+          <option value="theorem45">Theorem 4.5: re-decompose δ(H)*, then glue</option>
+          <option value="recompute">recompute from scratch ("Classic")</option>
+        </select>
+      </div>
+      <div>
+        <label class="field" for="timeout">Time limit per search (s, empty = none)</label>
+        <input type="number" id="timeout" min="0" step="1">
+      </div>
+      <label class="check"><input type="checkbox" id="tighten"> exact ghw after every step</label>
+      <label class="check"><input type="checkbox" id="oracle"> cross-check with the exact oracle (≤ 16 vertices)</label>
+    </div>
+  </details>
+
+  <details class="about" id="about">
+    <summary>About this demo</summary>
+    <div class="about-body">
+      <p>
+        This page is a front end for a Python implementation of the paper. The hypergraph and
+        its decomposition are held by the implementation itself: <em>Decompose</em> runs an exact
+        search, and every modification is handed to the incremental update
+        (<code>ghd_update</code>): Algorithm 2 finds the δ-mutable subtree, Algorithms 3–4 create
+        <em>scenes</em> (old nodes that may be reused), and Algorithm 5 rebuilds only what changed.
+        In the decomposition drawing, green nodes were kept from the previous decomposition and
+        purple ones were built anew.
+      </p>
+      <p>
+        The hypergraph is drawn with every edge as a coloured shape around exactly its
+        vertices. Edges changed by the last step are dashed. The layout keeps vertices where they
+        were, so after a modification you see the change in a picture you recognise.
+      </p>
+      <p class="caveat">
+        <strong>On the number.</strong> The paper's update only promises a GHD of width at most
+        the old width, or a proof that none exists. To show ghw itself after every step this demo
+        adds exact searches: upward when the width must rise, and one width smaller when it may
+        have dropped. With no time limit, a value marked <strong>proven</strong> is exact. A step
+        that hits the time limit says so and is shown as an <strong>upper bound</strong>, never
+        as proven. Several of the paper's statements needed corrections to be implemented
+        faithfully; see <code>docs/FINAL_REPORT.md</code>.
+      </p>
+    </div>
+  </details>
+
+</main>
+
+<footer>
+  Hypergraph and decomposition are computed in Python on this machine (127.0.0.1) and drawn
+  here with plain SVG. No network access is used.
+</footer>
+
+<div id="busy" hidden>computing…</div>
+<script src="/static/app.js"></script>
+</body>
+</html>

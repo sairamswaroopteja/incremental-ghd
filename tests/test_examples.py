@@ -25,6 +25,13 @@ def test_walkthrough_runs(capsys) -> None:
     assert "status = proven_no" in out and "validator refused it" in out
 
 
+def test_modifications_tour_agrees_with_oracle_and_draws(tmp_path, capsys) -> None:
+    log = _load("modifications_tour").tour(str(tmp_path / "tour.png"))   # asserts oracle agreement
+    assert [(r["before"], r["after"]) for r in log][:5] == [(1, 2), (2, 2), (2, 2), (2, 2), (2, 3)]
+    assert {r["kind"] for r in log} == {"AddVar", "DelVar", "AddConstr", "DelConstr", "AddEq", "DelEq"}
+    assert (tmp_path / "tour.png").stat().st_size > 10_000
+
+
 def test_quickstart_runs_and_every_answer_is_an_update() -> None:
     mod = _load("quickstart")
     log = mod.main()               # asserts validity of every UPDATED output itself

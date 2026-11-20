@@ -1,0 +1,16 @@
+# Render Blueprint: hosts the web interface (python web.py --public).
+# The library uses only the Python standard library, so there is nothing to install.
+services:
+  - type: web
+    name: incremental-ghd
+    runtime: python
+    plan: free
+    buildCommand: python --version
+    startCommand: python web.py --public
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: GHD_PUBLIC
+        value: "1"
